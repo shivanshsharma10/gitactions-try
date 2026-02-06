@@ -1,9 +1,9 @@
-name : Deploy NodeJS  Application to EC2 instance
+name: Deploy NodeJS Application to EC2 instance
 
 on:
   push:
-    branch:
-      -main
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -13,21 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-     - name: Setup SSH
-       run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
-         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-
-      - name: Test SSH
+      - name: Setup SSH
         run: |
-          ssh -i ~/.ssh/ec2.pem ubuntu@${{ secrets.EC2_HOST }} "echo SSH CONNECTED && hostname"
-          script:
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH and Deploy
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
             cd /home/ubuntu/raj/gitactions-try
             git pull
             docker compose up -d --build
+          EOF
